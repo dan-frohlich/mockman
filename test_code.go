@@ -7,8 +7,8 @@ import (
 	"unicode/utf8"
 )
 
-func stubInterface(packageName string, info InterfaceInfo) string {
-	data := StubInfo{
+func mockInterface(packageName string, info InterfaceInfo) string {
+	data := MockInfo{
 		Package:   packageName,
 		Interface: info,
 	}
@@ -22,14 +22,14 @@ func stubInterface(packageName string, info InterfaceInfo) string {
 	return ""
 }
 
-type StubInfo struct {
+type MockInfo struct {
 	Package   string
 	Interface InterfaceInfo
 }
 
 var tpl = `package {{.Package}}
 
-type {{.Interface.Name}}Stub struct {
+type {{.Interface.Name}}Mock struct {
 {{range .Interface.Methods}}
   {{lcase .Name}} func({{range $index, $param := .Parameters}}{{if $index}}, {{end}}{{.Name}}{{.Type}}{{end}}) {{if eq (len .Results) 0}}{{else if eq (len .Results) 1}}{{index .Results 0}}{{else}}({{range $index, $result := .Results}}{{if $index}}, {{end}}{{.}}{{end}}){{end}}
 {{end -}}
@@ -38,22 +38,22 @@ type {{.Interface.Name}}Stub struct {
 {{ $ifName := .Interface.Name }}
 
 {{range $index, $func := .Interface.Methods}}
-func (stub *{{$ifName}}Stub) {{$func }}{
-	if stub.{{lcase $func.Name}} != nil {
-		return stub.{{lcase $func.Name}}({{range $i, $param := $func.Parameters}}{{if $i}}, {{end}}{{.Name}}{{end}})
+func (mock *{{$ifName}}Mock) {{$func }}{
+	if mock.{{lcase $func.Name}} != nil {
+		return mock.{{lcase $func.Name}}({{range $i, $param := $func.Parameters}}{{if $i}}, {{end}}{{.Name}}{{end}})
 	}
-	panic("Method {{$func.Name}} not implemented in {{$ifName}}Stub")
+	panic("Method {{$func.Name}} not implemented in {{$ifName}}Mock")
 }
 {{end}}
 `
 
 /*
 {{range .Interface.Methods}}
-func (s *{{.Interface.Name}}Stub) {{range .Interface.Methods}}{{.String}} {
+func (s *{{.Interface.Name}}Mock) {{range .Interface.Methods}}{{.String}} {
 	if s.{{lcase .Name}} != nil {
 		return s.{{lcase .Name}}({{range $index, $param := .Parameters}}{{if $index}}, {{end}}{{.Name}}{{end}}{{end}})
 	}
-	panic("Method {{.Name}} not implemented in {{.Interface.Name}}Stub")
+	panic("Method {{.Name}} not implemented in {{.Interface.Name}}Mock")
 }
 {{end}}
 

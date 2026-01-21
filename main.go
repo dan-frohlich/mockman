@@ -19,10 +19,10 @@ func main() {
 	flag.StringVar(&filterParam, "f", "", "Optional filter pattern")
 	flag.Parse()
 
-	fmt.Printf("     source: %s\n", sourceParam)
-	fmt.Printf("destination: %s\n", destinationParam)
-	fmt.Printf("    package: %s\n", packageParam)
-	fmt.Printf("     filter: %s\n", filterParam)
+	// fmt.Printf("     source: %s\n", sourceParam)
+	// fmt.Printf("destination: %s\n", destinationParam)
+	// fmt.Printf("    package: %s\n", packageParam)
+	// fmt.Printf("     filter: %s\n", filterParam)
 
 	z, err := findInterfaces(sourceParam, filterParam)
 	if err != nil {
@@ -30,12 +30,12 @@ func main() {
 		return
 	}
 
-	fmt.Println("Found interfaces:")
-	for _, iface := range z {
-		fmt.Println(" -", iface.Describe())
-	}
+	// fmt.Println("Found interfaces:")
+	// for _, iface := range z {
+	// 	fmt.Println(" -", iface.Describe())
+	// }
 
 	for _, iface := range z {
-		_ = stubInterface(packageParam, iface)
+		_ = mockInterface(packageParam, iface)
 	}
 }
