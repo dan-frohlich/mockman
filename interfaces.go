@@ -13,10 +13,10 @@ func matchFilter(name, filter string) bool {
 	return strings.Contains(strings.ToLower(name), strings.ToLower(filter))
 }
 
-func makeMethodInfo(methodName *ast.Ident, method *ast.Field) (methodInfo, bool) {
+func makeMethodInfo(methodName *ast.Ident, method *ast.Field) (MethodInfo, bool) {
 
-	mi := methodInfo{
-		name: methodName.Name,
+	mi := MethodInfo{
+		Name: methodName.Name,
 	}
 	funcType, ok := method.Type.(*ast.FuncType)
 	if !ok {
@@ -27,15 +27,15 @@ func makeMethodInfo(methodName *ast.Ident, method *ast.Field) (methodInfo, bool)
 		for _, param := range funcType.Params.List {
 			paramType := exprToString(param.Type)
 			for _, paramName := range param.Names {
-				mi.parameters = append(mi.parameters, paramInfo{
-					name: paramName.Name,
-					typ:  paramType,
+				mi.Parameters = append(mi.Parameters, ParamInfo{
+					Name: paramName.Name,
+					Type: paramType,
 				})
 			}
 			if len(param.Names) == 0 {
-				mi.parameters = append(mi.parameters, paramInfo{
-					name: "",
-					typ:  paramType,
+				mi.Parameters = append(mi.Parameters, ParamInfo{
+					Name: "",
+					Type: paramType,
 				})
 			}
 		}
@@ -43,14 +43,14 @@ func makeMethodInfo(methodName *ast.Ident, method *ast.Field) (methodInfo, bool)
 	if funcType.Results != nil {
 		for _, result := range funcType.Results.List {
 			resultType := exprToString(result.Type)
-			mi.results = append(mi.results, resultType)
+			mi.Results = append(mi.Results, resultType)
 		}
 	}
 	return mi, true
 }
 
-func findInterfaces(path, filter string) ([]interfaceInfo, error) {
-	var interfaces []interfaceInfo
+func findInterfaces(path, filter string) ([]InterfaceInfo, error) {
+	var interfaces []InterfaceInfo
 
 	files, err := filepath.Glob(filepath.Join(path, "*.go"))
 	if err != nil {
@@ -79,15 +79,15 @@ func findInterfaces(path, filter string) ([]interfaceInfo, error) {
 				typeSpec := spec.(*ast.TypeSpec)
 				if interfaceType, ok := typeSpec.Type.(*ast.InterfaceType); ok {
 					if filter == "" || matchFilter(typeSpec.Name.Name, filter) {
-						ii := interfaceInfo{
-							name:   typeSpec.Name.Name,
-							source: interfaceType,
+						ii := InterfaceInfo{
+							Name:   typeSpec.Name.Name,
+							Source: interfaceType,
 						}
 						for _, method := range interfaceType.Methods.List {
 							for _, methodName := range method.Names {
 								mi, ok := makeMethodInfo(methodName, method)
 								if ok {
-									ii.methods = append(ii.methods, mi)
+									ii.Methods = append(ii.Methods, mi)
 								}
 							}
 						}
