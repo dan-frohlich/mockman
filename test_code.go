@@ -1,13 +1,13 @@
 package main
 
 import (
-	"os"
+	"strings"
 	"text/template"
 	"unicode"
 	"unicode/utf8"
 )
 
-func mockInterface(packageName string, info InterfaceInfo) string {
+func mockInterface(packageName string, info InterfaceInfo) (string, error) {
 	data := MockInfo{
 		Package:   packageName,
 		Interface: info,
@@ -18,8 +18,11 @@ func mockInterface(packageName string, info InterfaceInfo) string {
 	}
 
 	t := template.Must(template.New("userTemplate").Funcs(funcMap).Parse(tpl))
-	t.Execute(os.Stdout, data)
-	return ""
+	var buf strings.Builder
+	if err := t.Execute(&buf, data); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
 }
 
 type MockInfo struct {
@@ -31,14 +34,15 @@ var tpl = `package {{.Package}}
 
 type {{.Interface.Name}}Mock struct {
 {{range .Interface.Methods}}
-  {{lcase .Name}} func({{range $index, $param := .Parameters}}{{if $index}}, {{end}}{{.Name}}{{.Type}}{{end}}) {{if eq (len .Results) 0}}{{else if eq (len .Results) 1}}{{index .Results 0}}{{else}}({{range $index, $result := .Results}}{{if $index}}, {{end}}{{.}}{{end}}){{end}}
+  {{lcase .Name}} func({{range $index, $param := .Parameters}}{{if $index}}, {{end}}{{.Name}} {{.Type}}{{end}}) {{if eq (len .Results) 0}}{{else if eq (len .Results) 1}}{{index .Results 0}}{{else}}({{range $index, $result := .Results}}{{if $index}}, {{end}}{{.}}{{end}}){{end -}}
+
 {{end -}}
 }
 
 {{ $ifName := .Interface.Name }}
 
 {{range $index, $func := .Interface.Methods}}
-func (mock *{{$ifName}}Mock) {{$func }}{
+func (mock *{{$ifName}}Mock) {{$func.Name}}({{range $i, $param := $func.Parameters}}{{if $i}}, {{end}}{{.String}}{{end}}) {{if eq (len $func.Results) 0}}{{else if eq (len $func.Results) 1}}{{index $func.Results 0}}{{else}}({{range $i, $result := $func.Results}}{{if $i}}, {{end}}{{.}}{{end}}){{end}} {
 	if mock.{{lcase $func.Name}} != nil {
 		return mock.{{lcase $func.Name}}({{range $i, $param := $func.Parameters}}{{if $i}}, {{end}}{{.Name}}{{end}})
 	}

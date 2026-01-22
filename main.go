@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+	"os"
 )
 
 var (
@@ -36,6 +38,17 @@ func main() {
 	// }
 
 	for _, iface := range z {
-		_ = mockInterface(packageParam, iface)
+		var code string
+		code, err = mockInterface(packageParam, iface)
+		if err != nil {
+			fmt.Printf("Error generating mock for interface %s: %v\n", iface.Name, err)
+			continue
+		}
+
+		err := os.WriteFile(destinationParam, []byte(code), 0644)
+		if err != nil {
+			log.Fatal(err)
+		}
+		break
 	}
 }

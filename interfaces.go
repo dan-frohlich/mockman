@@ -6,11 +6,10 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 func matchFilter(name, filter string) bool {
-	return strings.Contains(strings.ToLower(name), strings.ToLower(filter))
+	return name == filter
 }
 
 func makeMethodInfo(methodName *ast.Ident, method *ast.Field) (MethodInfo, bool) {
